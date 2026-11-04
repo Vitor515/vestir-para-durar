@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vestir para Durar — A Engenharia por Trás da Moda Circular</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emeraldCustom: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                            950: '#022c22'
+                        },
+                        navy: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+
+        /* Smooth cards transitions */
+        .symbol-card { transition: all 0.2s ease-in-out; }
+        .symbol-card:hover { transform: translateY(-2px); }
+        .symbol-card.selected {
+            border-color: #059669;
+            background-color: #ecfdf5;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
+        }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Modal backdrop animation */
+        .modal-animate-bg { animation: fadeIn 0.2s ease-out forwards; }
+        .modal-animate-card { animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased selection:bg-emerald-500 selection:text-white min-h-screen pb-28">
+
+    <!-- HEADER & LOGO -->
+    <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md text-white border-b border-slate-800 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 sm:h-20">
+                <!-- Title & Project Badge -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('tab-decodificador')">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 shadow-inner">
+                        <i data-lucide="shirt" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] sm:text-xs uppercase tracking-widest text-emerald-400 font-extrabold block">Projeto de Extensão Universitária</span>
+                        <h1 class="text-base sm:text-xl font-black tracking-tight text-white leading-none">Vestir para Durar</h1>
+                    </div>
+                </div>
+
+                <!-- ISO Badge -->
+                <div class="hidden md:flex items-center space-x-3 text-xs font-semibold">
+                    <span class="bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-full flex items-center space-x-1.5">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                        <span>NBR ISO 3758</span>
+                    </span>
+                    <span class="bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 px-3 py-1.5 rounded-full flex items-center space-x-1.5">
+                        <i data-lucide="recycle" class="w-4 h-4 text-emerald-400"></i>
+                        <span>Moda Circular & Durabilidade</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- RESPONSIVE NAV TABS -->
+            <nav class="flex overflow-x-auto hide-scrollbar space-x-2 py-2.5 border-t border-slate-800 text-xs sm:text-sm font-semibold">
+                <button id="btn-tab-decodificador" onclick="switchTab('tab-decodificador')" class="tab-btn px-4 py-2 rounded-xl whitespace-nowrap flex items-center space-x-2 transition-all bg-emerald-600 text-white shadow">
+                    <i data-lucide="qr-code" class="w-4 h-4"></i>
+                    <span>1. Etiquetas ISO 3758</span>
+                </button>
+                <button id="btn-tab-composicao" onclick="switchTab('tab-composicao')" class="tab-btn px-4 py-2 rounded-xl whitespace-nowrap flex items-center space-x-2 transition-all text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i data-lucide="sun" class="w-4 h-4"></i>
+                    <span>2. Composição & Clima</span>
+                </button>
+                <button id="btn-tab-durabilidade" onclick="switchTab('tab-durabilidade')" class="tab-btn px-4 py-2 rounded-xl whitespace-nowrap flex items-center space-x-2 transition-all text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i data-lucide="shield-alert" class="w-4 h-4"></i>
+                    <span>3. Engenharia da Durabilidade</span>
+                </button>
+                <button id="btn-tab-lavagem" onclick="switchTab('tab-lavagem')" class="tab-btn px-4 py-2 rounded-xl whitespace-nowrap flex items-center space-x-2 transition-all text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i data-lucide="calculator" class="w-4 h-4"></i>
+                    <span>4. Dosagem & Lavagem</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- BANNER HERO -->
+    <section class="bg-gradient-to-b from-slate-900 via-slate-900 to-emerald-950 text-white py-8 px-4 sm:px-6 lg:px-8 border-b border-emerald-900/40">
+        <div class="max-w-5xl mx-auto text-center space-y-3">
+            <div class="inline-flex items-center space-x-2 bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span>Ciência Têxtil Aplicada ao Consumo Consciente</span>
+            </div>
+            <h2 class="text-2xl sm:text-4xl font-black tracking-tight text-white leading-tight">
+                Como Conservar Suas Roupas & Acessórios por Mais Tempo
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 max-w-3xl mx-auto leading-relaxed">
+                Estender a vida útil de uma peça de vestuário por apenas <strong>9 meses adicionais</strong> reduz em até <strong>30%</strong> sua pegada ambiental de água, carbono e resíduos. Toque nos símbolos da sua etiqueta para decodificar as instruções exatas da norma internacional!
+            </p>
+        </div>
+    </section>
+
+    <!-- MAIN CONTENT CONTAINERS -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+
+        <!-- ================================================================= -->
+        <!-- TAB 1: DECODIFICADOR ISO 3758 (GRID COM MODAL INSTANTÂNEO) -->
+        <!-- ================================================================= -->
+        <div id="tab-decodificador" class="tab-content space-y-6">
+            
+            <div class="bg-white rounded-3xl p-5 sm:p-8 shadow-sm border border-slate-200 space-y-6">
+                <!-- Header Info -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                    <div>
+                        <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest">Toque em qualquer símbolo para ver a explicação técnica completa</span>
+                        <h3 class="text-xl sm:text-2xl font-black text-slate-900">Simbologia Universal de Conservação</h3>
+                    </div>
+                    <button onclick="resetTagBuilder()" class="inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition self-start sm:self-auto">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4 mr-1.5"></i> Limpar Etiqueta
+                    </button>
+                </div>
+
+                <!-- SYMBOL CATEGORIES GRID -->
+                <div class="space-y-8">
+                    <!-- 1. LAVAGEM -->
+                    <div>
+                        <div class="flex items-center space-x-2 mb-3">
+                            <div class="p-1.5 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs"><i data-lucide="waves" class="w-4 h-4"></i></div>
+                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">1. Processo de Lavagem com Água</h4>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3" id="group-wash"></div>
+                    </div>
+
+                    <!-- 2. ALVEJAMENTO -->
+                    <div>
+                        <div class="flex items-center space-x-2 mb-3">
+                            <div class="p-1.5 rounded-lg bg-amber-100 text-amber-800 font-bold text-xs"><i data-lucide="triangle" class="w-4 h-4"></i></div>
+                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">2. Uso de Alvejantes & Cloro</h4>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3" id="group-bleach"></div>
+                    </div>
+
+                    <!-- 3. SECAGEM -->
+                    <div>
+                        <div class="flex items-center space-x-2 mb-3">
+                            <div class="p-1.5 rounded-lg bg-blue-100 text-blue-800 font-bold text-xs"><i data-lucide="square" class="w-4 h-4"></i></div>
+                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">3. Método de Secagem</h4>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3" id="group-dry"></div>
+                    </div>
+
+                    <!-- 4. PASSAGEM -->
+                    <div>
+                        <div class="flex items-center space-x-2 mb-3">
+                            <div class="p-1.5 rounded-lg bg-rose-100 text-rose-800 font-bold text-xs"><i data-lucide="flame" class="w-4 h-4"></i></div>
+                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">4. Passagem a Ferro</h4>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3" id="group-iron"></div>
+                    </div>
+
+                    <!-- 5. PROFISSIONAL -->
+                    <div>
+                        <div class="flex items-center space-x-2 mb-3">
+                            <div class="p-1.5 rounded-lg bg-purple-100 text-purple-800 font-bold text-xs"><i data-lucide="circle" class="w-4 h-4"></i></div>
+                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">5. Limpeza Profissional (Lavanderia)</h4>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3" id="group-professional"></div>
+                    </div>
+                </div>
+
+                <!-- ISO KEY RULES -->
+                <div class="bg-slate-900 text-white p-5 rounded-2xl text-xs space-y-2">
+                    <div class="font-bold text-emerald-400 flex items-center space-x-1.5 text-sm">
+                        <i data-lucide="info" class="w-4 h-4"></i>
+                        <span>Regra de Leitura Universal (Norma NBR ISO 3758):</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-slate-300">
+                        <div><strong>• Pontos (•):</strong> Indicam TEMPERATURA. Quanto mais pontos, maior o calor suportado sem deformar a fibra.</div>
+                        <div><strong>— Barras (—):</strong> Indicam SUAVIDADE. Quanto mais barras inferiores, menor a velocidade e centrifugação.</div>
+                        <div><strong>✖ O Xis (✖):</strong> Indica PROIBIÇÃO. Submeter a peça àquela ação causará destruição ou alteração permanente.</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- TAB 2: COMPOSIÇÃO TÊXTIL & CLIMA (NOVO E COMPLETO) -->
+        <!-- ================================================================= -->
+        <div id="tab-composicao" class="tab-content hidden space-y-8">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-8">
+                <div class="max-w-3xl space-y-3">
+                    <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest">Guia de Compra & Escolha Consciente</span>
+                    <h3 class="text-2xl sm:text-3xl font-black text-slate-900">Como Escolher a Roupa Certa Conforme a Composição Têxtil</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        A durabilidade e o conforto térmico de uma peça dependem diretamente da fibra química utilizada na tecelagem. Aprenda a avaliar a etiqueta de composição antes de comprar!
+                    </p>
+                </div>
+
+                <!-- CLIMATE FIBER CARDS -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- HOT CLIMATES -->
+                    <div class="p-6 rounded-3xl bg-amber-500/5 border border-amber-200 space-y-5">
+                        <div class="flex items-center space-x-3 text-amber-900">
+                            <div class="p-3 rounded-2xl bg-amber-100 text-amber-800"><i data-lucide="sun" class="w-6 h-6"></i></div>
+                            <div>
+                                <h4 class="font-black text-lg">Para Climas Quentes & Tropicais</h4>
+                                <span class="text-xs font-semibold text-amber-700">Alta respirabilidade & Hidrofilias naturais</span>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-slate-700 leading-relaxed">
+                            Em regiões quentes e úmidas, o corpo necessita evaporar o suor para resfriar a pele. Peças sintéticas não porosas retêm a umidade e geram odor bacteriano acelerado.
+                        </p>
+
+                        <div class="space-y-3 text-xs">
+                            <div class="p-3 rounded-xl bg-white border border-amber-100 space-y-1">
+                                <span class="font-bold text-slate-900">🌿 Algodão 100% (Cambraia / Tricoline / Meia Malha):</span>
+                                <p class="text-slate-600">Fibra celulósica natural com alta absorção (higroscopidade). Permite que o ar circule e conduz o calor corporal para o ambiente exterior.</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white border border-amber-100 space-y-1">
+                                <span class="font-bold text-slate-900">🌾 Linho (100% Puro ou Misto):</span>
+                                <p class="text-slate-600">O rei dos climas quentes. Possui fibra rígida que cria um caimento afastado do corpo, facilitando microcorrentes de ar. Seca 2x mais rápido que o algodão.</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white border border-amber-100 space-y-1">
+                                <span class="font-bold text-slate-900">🍃 Viscose, Tencel / Lyocell & Modal:</span>
+                                <p class="text-slate-600">Fibras artificiais celulósicas (feitas de madeira de manejo sustentável). Têm toque extremamente frio, excelente caimento fluido e alta higroscopidade.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- COLD CLIMATES -->
+                    <div class="p-6 rounded-3xl bg-blue-500/5 border border-blue-200 space-y-5">
+                        <div class="flex items-center space-x-3 text-blue-900">
+                            <div class="p-3 rounded-2xl bg-blue-100 text-blue-800"><i data-lucide="snowflake" class="w-6 h-6"></i></div>
+                            <div>
+                                <h4 class="font-black text-lg">Para Climas Frios & Baixas Temperaturas</h4>
+                                <span class="text-xs font-semibold text-blue-700">Isolamento térmico & Ar estagnado</span>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-slate-700 leading-relaxed">
+                            O segredo do aquecimento no frio não é a espessura da roupa, mas a sua capacidade de aprisionar microbolsas de ar morno (ar estagnado) entre as fibras sem deixá-lo escapar.
+                        </p>
+
+                        <div class="space-y-3 text-xs">
+                            <div class="p-3 rounded-xl bg-white border border-blue-100 space-y-1">
+                                <span class="font-bold text-slate-900">🐑 Lã Natural (Merino / Proteica):</span>
+                                <p class="text-slate-600">Possui ondulações microscópicas que retêm ar aquecido. É termorreguladora natural, repelindo água externa enquanto absorve o suor do corpo sem ficar gelada.</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white border border-blue-100 space-y-1">
+                                <span class="font-bold text-slate-900">🔥 Fleece de Poliéster & Microfibra:</span>
+                                <p class="text-slate-600">Fibras sintéticas felpadas ultra leves. São hidrófobas (repelem água), secam muito rápido e aprisionam grande camada de ar quente como segunda pele.</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white border border-blue-100 space-y-1">
+                                <span class="font-bold text-slate-900">🧶 Acrílico (Substituto da Lã):</span>
+                                <p class="text-slate-600">Sintético macio e aquecido, porém propício à geração de bolinhas (*pilling*) se lavado com muita fricção mecânica.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- BLENDS & QUALITY CHECK -->
+                <div class="p-6 rounded-3xl bg-slate-900 text-white space-y-4">
+                    <h4 class="font-extrabold text-base text-emerald-400 flex items-center space-x-2">
+                        <i data-lucide="layers" class="w-5 h-5"></i>
+                        <span>Entendendo Misturas Têxteis (Blends) na Prática</span>
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-slate-300">
+                        <div class="p-3 rounded-xl bg-slate-800 border border-slate-700 space-y-1">
+                            <strong class="text-white block">Algodão + Elastano (2% a 5%):</strong>
+                            <p>Adiciona elasticidade e conforto para calças e camisetas sem comprometer a respirabilidade celulósica.</p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-800 border border-slate-700 space-y-1">
+                            <strong class="text-white block">Algodão + Poliéster (50/50):</strong>
+                            <p>Aumenta a resistência a rasgos e faz a roupa amarrotar muito menos, porém esquenta mais em dias quentes.</p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-800 border border-slate-700 space-y-1">
+                            <strong class="text-white block">Poliamida (Nylon) vs Poliéster:</strong>
+                            <p>A poliamida é mais macia, fria e elástica que o poliéster. É a melhor escolha sintética para moda praia e esporte.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- TAB 3: ENGENHARIA DA DURABILIDADE (EXTENDIDA) -->
+        <!-- ================================================================= -->
+        <div id="tab-durabilidade" class="tab-content hidden space-y-8">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-8">
+                <div class="max-w-3xl space-y-3">
+                    <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest">Conservação Estrutural Avançada</span>
+                    <h3 class="text-2xl sm:text-3xl font-black text-slate-900">Como Aumentar a Vida Útil das Peças</h3>
+                    <p class="text-sm text-slate-600">
+                        Pequenos cuidados mecânicos, físicos e químicos impedem o desgaste prematuro de tecidos delicados e materiais nobres como o couro.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <!-- LEATHER COATS & BAGS -->
+                    <div class="p-6 rounded-3xl bg-amber-950/5 border border-amber-900/10 space-y-4">
+                        <div class="flex items-center space-x-3 text-amber-900">
+                            <div class="p-3 rounded-2xl bg-amber-100 text-amber-800"><i data-lucide="shield" class="w-6 h-6"></i></div>
+                            <div>
+                                <h4 class="font-extrabold text-lg">Jaquetas & Bolsas de Couro Legítimo</h4>
+                                <span class="text-xs font-semibold text-amber-700">Manutenção de óleos lipídicos</span>
+                            </div>
+                        </div>
+                        <ul class="text-xs text-slate-700 space-y-2.5 leading-relaxed">
+                            <li class="flex items-start">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 mr-2 mt-0.5 shrink-0"></i>
+                                <span><strong>Hidratação Lipídica (1x ao ano):</strong> O couro é uma pele natural porosa. Aplique vaselina neutra líquida ou hidratante corporal sem perfume com pano de microfibra para evitar rachaduras secas.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 mr-2 mt-0.5 shrink-0"></i>
+                                <span><strong>Preenchimento de Bolsas:</strong> Ao guardar bolsas, preencha o interior com papel vegetal neutro ou almofada. Isso evita a quebra permanente da pátina e rugas no couro.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 mr-2 mt-0.5 shrink-0"></i>
+                                <span><strong>Cabides Largos Estruturados:</strong> Jaquetas de couro pesam muito. Cabides finos de arame marcam e deformam a estrutura dos ombros.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 mr-2 mt-0.5 shrink-0"></i>
+                                <span><strong>Jamais Use Plastificação:</strong> Capas plásticas retêm umidade do ar e proliferam fungos (mofo branco). Guarde sempre em capas respiráveis de TNT.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- KNITWEAR & WOOL -->
+                    <div class="p-6 rounded-3xl bg-slate-900 text-white space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"><i data-lucide="cloud-snow" class="w-6 h-6"></i></div>
+                            <div>
+                                <h4 class="font-extrabold text-lg">Tricôs, Casacos de Lã & Malharia</h4>
+                                <span class="text-xs font-semibold text-emerald-400">Prevenção de deformação gravítica</span>
+                            </div>
+                        </div>
+                        <ul class="text-xs text-slate-300 space-y-2.5 leading-relaxed">
+                            <li class="flex items-start">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 mr-2 mt-0.5 shrink-0"></i>
+                                <span><strong>Guarde Sempre Dobrado (Sem Cabides):</strong> A gravidade estica a trama do tricô no cabide, esticando a barra e os ombros de forma irreversível.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 mr-2 mt-0.5 shrink-0"></i>
+                                <span><strong>Secagem no Plano Horizontal:</strong> Após lavar tricôs ou lãs à mão, esprema o excesso de água em uma toalha e seque a peça deitada sobre o varal horizontal.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 mr-2 mt-0.5 shrink-0"></i>
+                                <span><strong>Descanso de Fibras (48 horas):</strong> Fibras proteicas naturais de lã precisam de descanso entre usos para recuperar sua ondulação molecular original.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- TRIBOLOGY & WEAR -->
+                    <div class="p-6 rounded-3xl bg-slate-50 border border-slate-200 space-y-4">
+                        <div class="flex items-center space-x-3 text-slate-900">
+                            <div class="p-3 rounded-2xl bg-emerald-100 text-emerald-800"><i data-lucide="repeat" class="w-6 h-6"></i></div>
+                            <div>
+                                <h4 class="font-extrabold text-lg">Tribologia & Fricção de Lavagem</h4>
+                                <span class="text-xs font-semibold text-slate-600">Como evitar bolinhas (*pilling*)</span>
+                            </div>
+                        </div>
+                        <ul class="text-xs text-slate-700 space-y-2.5 leading-relaxed">
+                            <li class="flex items-start">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 mr-2 mt-0.5 shrink-0"></i>
+                                <span><strong>Lave do Avesso:</strong> O atrito direto das fibras com o tambor da máquina é a causa raiz do desbotamento de cores e do surgimento de bolinhas.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 mr-2 mt-0.5 shrink-0"></i>
+                                <span><strong>Feche Zíperes & Ganchos:</strong> Zíperes abertos agem como serras na lavagem, cortando os fios de tecidos mais delicados.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 mr-2 mt-0.5 shrink-0"></i>
+                                <span><strong>Sacos de Lavagem em Malha Fina:</strong> Indispensáveis para rendas, lingerie e roupas com elastano para não esticarem na centrifugação.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- SUN & SHADE -->
+                    <div class="p-6 rounded-3xl bg-slate-50 border border-slate-200 space-y-4">
+                        <div class="flex items-center space-x-3 text-slate-900">
+                            <div class="p-3 rounded-2xl bg-amber-100 text-amber-800"><i data-lucide="sun-off" class="w-6 h-6"></i></div>
+                            <div>
+                                <h4 class="font-extrabold text-lg">Proteção Solar & Reações Químicas</h4>
+                                <span class="text-xs font-semibold text-slate-600">Preservação de corantes & elasticidade</span>
+                            </div>
+                        </div>
+                        <ul class="text-xs text-slate-700 space-y-2.5 leading-relaxed">
+                            <li class="flex items-start">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 mr-2 mt-0.5 shrink-0"></i>
+                                <span><strong>Secagem Sempre à Sombra:</strong> A radiação ultravioleta (UV) rompe as ligações químicas dos corantes sintéticos e resseca as fibras de algodão.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 mr-2 mt-0.5 shrink-0"></i>
+                                <span><strong>Proibição Absoluta de Cloro em Elastano:</strong> O hipoclorito de sódio oxida e destrói o núcleo elástico de moda praia e fitness, deixando o tecido esgarçado.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 mr-2 mt-0.5 shrink-0"></i>
+                                <span><strong>Água Fria Evita Encolhimento:</strong> Água quente acima de 40°C relaxa a tensão residual dos fios de algodão, fazendo a peça encolher de tamanho.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- TAB 4: LAVAGEM & DOSAGEM DE DETERGENTE -->
+        <!-- ================================================================= -->
+        <div id="tab-lavagem" class="tab-content hidden space-y-8">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-8">
+                <div class="text-center max-w-2xl mx-auto space-y-3">
+                    <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest">Guia de Lavanderia Prática</span>
+                    <h3 class="text-2xl sm:text-3xl font-black text-slate-900">Calculadora de Dosagem & Cuidados de Enxágue</h3>
+                    <p class="text-sm text-slate-600">
+                        O excesso de sabão é um dos maiores vilões das roupas. Ele impregna nos poros da fibra, enrijece o tecido e atrai mofo e odores.
+                    </p>
+                </div>
+
+                <!-- CALCULATOR BOX -->
+                <div class="bg-slate-900 text-white p-6 sm:p-8 rounded-3xl space-y-6 shadow-xl">
+                    <div class="flex items-center space-x-3 border-b border-slate-800 pb-4">
+                        <div class="p-3 bg-emerald-500/20 text-emerald-400 rounded-2xl border border-emerald-500/30">
+                            <i data-lucide="calculator" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-extrabold text-lg">Calculadora de Dosagem de Detergente Líquido</h4>
+                            <p class="text-xs text-slate-400">Insira a quantidade de roupas para obter a medida exata sem desperdício</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-2">Carga da Máquina de Lavar:</label>
+                            <select id="calc-load" onchange="calculateDetergent()" class="w-full bg-slate-800 text-white rounded-xl border border-slate-700 p-3 text-xs sm:text-sm focus:outline-none focus:border-emerald-500">
+                                <option value="light">Carga Pouca / Leve (até 3 kg) — Fundo da máquina</option>
+                                <option value="medium" selected>Carga Média (4 a 7 kg) — Metade do tambor</option>
+                                <option value="heavy">Carga Cheia (8 kg ou mais) — Tambor preenchido</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-2">Nível de Sujeira das Peças:</label>
+                            <select id="calc-dirt" onchange="calculateDetergent()" class="w-full bg-slate-800 text-white rounded-xl border border-slate-700 p-3 text-xs sm:text-sm focus:outline-none focus:border-emerald-500">
+                                <option value="low">Sujeira Leve (Uso urbano / Escritório / Sem manchas)</option>
+                                <option value="normal" selected>Sujeira Normal (Uso diário / Suor moderado)</option>
+                                <option value="high">Sujeira Pesada (Manchas / Barro / Atividades intensas)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- RESULT OUTPUT -->
+                    <div id="calc-result" class="p-4 rounded-2xl bg-emerald-950/90 border border-emerald-700/60 text-sm text-emerald-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- MACHINE VS HAND STEP-BY-STEP -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                    <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                        <h4 class="font-extrabold text-slate-900 text-base flex items-center space-x-2">
+                            <i data-lucide="washing-machine" class="w-5 h-5 text-emerald-600"></i>
+                            <span>Passo a Passo na Máquina</span>
+                        </h4>
+                        <ol class="list-decimal pl-4 text-xs text-slate-600 space-y-2 leading-relaxed">
+                            <li><strong>Separação por Cor e Gramatura:</strong> Separe brancos, coloridos e escuros. Nunca misture toalhas pesadas com camisetas finas.</li>
+                            <li><strong>Virar do Avesso & Fechar Zíperes:</strong> Preserva a cor e evita rasgos causados pelos dentes do zíper.</li>
+                            <li><strong>Dosagem Correta:</strong> Use a gaveta dosadora. Detergente em contato direto com a roupa pode manchar tecidos coloridos.</li>
+                        </ol>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                        <h4 class="font-extrabold text-slate-900 text-base flex items-center space-x-2">
+                            <i data-lucide="hand" class="w-5 h-5 text-emerald-600"></i>
+                            <span>Passo a Passo Lavagem à Mão</span>
+                        </h4>
+                        <ol class="list-decimal pl-4 text-xs text-slate-600 space-y-2 leading-relaxed">
+                            <li><strong>Diluição Prévia:</strong> Dissolva completamente o sabão neutro na água ANTES de mergulhar a peça delicada.</li>
+                            <li><strong>Movimentos Suaves:</strong> Comprima suavemente a peça na água. Não esfregue o tecido contra ele mesmo para não quebrar fios.</li>
+                            <li><strong>Remoção da Água:</strong> Não torça a roupa como um parafuso. Enrole-a em uma toalha limpa e pressione para absorver o excesso.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ================================================================= -->
+    <!-- FLOATING BAR & GARMENT CARE REPORT TRIGGER -->
+    <!-- ================================================================= -->
+    <div id="floating-bar" class="fixed bottom-4 left-4 right-4 max-w-xl mx-auto z-30 bg-slate-900/95 backdrop-blur-md text-white p-3.5 rounded-2xl shadow-2xl border border-slate-800 flex items-center justify-between transition-all">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center font-bold text-sm">
+                <span id="floating-count">0</span>
+            </div>
+            <div>
+                <p class="text-xs font-bold text-white">Símbolos Selecionados</p>
+                <p class="text-[11px] text-slate-400" id="floating-subtitle">Toque nos símbolos para adicionar</p>
+            </div>
+        </div>
+        <button onclick="openReportModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition flex items-center space-x-1.5">
+            <i data-lucide="file-text" class="w-4 h-4"></i>
+            <span>Ver Relatório da Peça</span>
+        </button>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MODAL POPUP 1: EXPLICAÇÃO TÉCNICA DO SÍMBOLO (INSTANTÂNEO SEM SCROLL) -->
+    <!-- ================================================================= -->
+    <div id="symbol-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm modal-animate-bg" onclick="closeSymbolModal()"></div>
+
+        <!-- Modal Card Content -->
+        <div class="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden z-10 modal-animate-card my-auto">
+            
+            <!-- Modal Header -->
+            <div class="bg-slate-900 text-white p-6 border-b border-slate-800 flex items-start justify-between relative">
+                <div class="flex items-center space-x-4">
+                    <div id="modal-icon-container" class="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0 p-2">
+                        <!-- SVG injected via JS -->
+                    </div>
+                    <div>
+                        <span id="modal-category-badge" class="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-0.5">CATEGORIA</span>
+                        <h3 id="modal-title" class="text-lg sm:text-xl font-black text-white leading-tight">Nome do Símbolo</h3>
+                        <span id="modal-iso-code" class="text-[11px] text-slate-400 font-medium">Norma NBR ISO 3758</span>
+                    </div>
+                </div>
+                <button onclick="closeSymbolModal()" class="text-slate-400 hover:text-white p-1 rounded-xl hover:bg-slate-800 transition">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (Detailed Technical Content) -->
+            <div class="p-6 space-y-5 text-xs text-slate-700 max-h-[70vh] overflow-y-auto hide-scrollbar">
+                
+                <!-- Official Meaning -->
+                <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-1">
+                    <span class="font-extrabold uppercase text-[10px] tracking-wider text-emerald-800 block">Significado Oficial NBR ISO 3758</span>
+                    <p id="modal-desc" class="text-xs sm:text-sm font-medium leading-relaxed">Descrição da norma oficial...</p>
+                </div>
+
+                <!-- Textile Engineering Insight -->
+                <div class="space-y-1.5">
+                    <h4 class="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center space-x-1.5">
+                        <i data-lucide="cpu" class="w-4 h-4 text-emerald-600"></i>
+                        <span>Explicação de Engenharia Têxtil</span>
+                    </h4>
+                    <p id="modal-engineering" class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                        Explicação detalhada sobre o comportamento das fibras...
+                    </p>
+                </div>
+
+                <!-- Technical Limits Grid -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase block">Temperatura Limite</span>
+                        <span id="modal-limit-temp" class="text-xs font-black text-slate-900">Até 40°C</span>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase block">Ação Mecânica</span>
+                        <span id="modal-limit-action" class="text-xs font-black text-slate-900">Normal</span>
+                    </div>
+                </div>
+
+                <!-- Do's and Don'ts -->
+                <div class="space-y-2">
+                    <div class="flex items-start space-x-2 text-emerald-800 bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-200">
+                        <i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
+                        <span id="modal-dos" class="text-xs font-medium">Recomendado...</span>
+                    </div>
+                    <div class="flex items-start space-x-2 text-rose-800 bg-rose-50/60 p-2.5 rounded-xl border border-rose-200">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i>
+                        <span id="modal-donts" class="text-xs font-medium">Evite absolutamente...</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer Action -->
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+                <button onclick="closeSymbolModal()" class="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs transition">
+                    Fechar
+                </button>
+                <button id="modal-toggle-btn" onclick="toggleSymbolFromModal()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center space-x-1.5 shadow">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Adicionar à Minha Etiqueta</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MODAL POPUP 2: RELATÓRIO DA ETIQUETA SELECIONADA -->
+    <!-- ================================================================= -->
+    <div id="report-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+        <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm modal-animate-bg" onclick="closeReportModal()"></div>
+
+        <div class="relative bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden z-10 modal-animate-card my-auto">
+            <div class="bg-slate-900 text-white p-6 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center">
+                        <i data-lucide="clipboard-check" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-white">Relatório Sintetizado de Cuidados</h3>
+                        <p class="text-xs text-slate-400">Guia de conservação para a peça selecionada</p>
+                    </div>
+                </div>
+                <button onclick="closeReportModal()" class="text-slate-400 hover:text-white p-1 rounded-xl hover:bg-slate-800">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <div id="report-modal-body" class="p-6 space-y-4 text-xs text-slate-700 max-h-[70vh] overflow-y-auto">
+                <!-- Dynamically filled by JS -->
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                <button onclick="resetTagBuilder(); closeReportModal();" class="text-xs font-bold text-rose-600 hover:text-rose-700">
+                    Limpar Seleção
+                </button>
+                <button onclick="closeReportModal()" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-200 bg-white py-6 text-slate-600 text-xs mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold">
+                    <i data-lucide="shirt" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <p class="font-extrabold text-slate-800">Vestir para Durar: A Engenharia por Trás da Moda Circular</p>
+                    <p class="text-[11px] text-slate-500">Projeto de Extensão Universitária • NBR ISO 3758</p>
+                </div>
+            </div>
+            <p class="text-[11px] text-slate-400">Material Educativo de Acesso Livre</p>
+        </div>
+    </footer>
+
+    <!-- APP JAVASCRIPT LOGIC -->
+    <script>
+        // ISO 3758 SYMBOLS MASTER DATA WITH EXTENDED TECHNICAL DETAILS
+        const SYMBOLS_DATA = [
+            // 1. LAVAGEM COM ÁGUA
+            {
+                id: 'w_normal',
+                group: 'wash',
+                name: 'Lavar à Máquina (Normal)',
+                category: 'Lavagem com Água',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18l-2 13H5L3 6z"/><path d="M3 9c2 0 3 1 5 1s3-1 5-1 3 1 5 1 3-1 3-1"/></svg>',
+                desc: 'Processo mecânico normal de lavagem com água até a temperatura de 40°C.',
+                engineering: 'Indica tecidos com boa estabilidade dimensional e mecânica (como algodão denso e linho). Suporta rotação mecânica normal do tambor sem risco de ruptura de fibras.',
+                tempLimit: 'Até 40°C',
+                actionLimit: 'Agitação mecânica normal',
+                dos: 'Separe tecidos escuros e claros. Use sabão líquido neutro.',
+                donts: 'Não exceda a capacidade de carga recomendada pela máquina.'
+            },
+            {
+                id: 'w_30',
+                group: 'wash',
+                name: 'Lavar em Água Fria (Máx. 30°C)',
+                category: 'Lavagem com Água',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18l-2 13H5L3 6z"/><path d="M3 9c2 0 3 1 5 1s3-1 5-1 3 1 5 1 3-1 3-1"/><circle cx="12" cy="14" r="1.5" fill="currentColor"/></svg>',
+                desc: 'Lavagem suave com temperatura máxima da água de 30°C.',
+                engineering: 'A água fria preserva a integridade de fibras elastoméricas (Elastano/Lycra) e evita o relaxamento térmico das fibras celulósicas que causa encolhimento. Reduz o consumo de energia da máquina em até 80%.',
+                tempLimit: 'Máximo 30°C',
+                actionLimit: 'Média agitação',
+                dos: 'Ideal para roupas esportivas, jeans escuros e peças com elastano.',
+                donts: 'Jamais utilize água aquecida para prevenir perda de elasticidade.'
+            },
+            {
+                id: 'w_delicate',
+                group: 'wash',
+                name: 'Processo Delicado (1 Barra)',
+                category: 'Lavagem com Água',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18l-2 13H5L3 6z"/><path d="M3 9c2 0 3 1 5 1s3-1 5-1 3 1 5 1 3-1 3-1"/><line x1="4" y1="21" x2="20" y2="21"/></svg>',
+                desc: 'Processo de lavagem com agitação mecânica reduzida e centrifugação suave.',
+                engineering: 'A barra inferior reduz a velocidade do agitador e o tempo de centrifugação. Impede a migração de microfibras da superfície que dão origem às bolinhas (*pilling*).',
+                tempLimit: '30°C a 40°C',
+                actionLimit: 'Agitação branda / RPM reduzido',
+                dos: 'Utilize sacos de lavagem em malha fina para proteção extra.',
+                donts: 'Não centrifuge na rotação máxima da máquina.'
+            },
+            {
+                id: 'w_very_delicate',
+                group: 'wash',
+                name: 'Processo Muito Delicado (2 Barras)',
+                category: 'Lavagem com Água',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18l-2 13H5L3 6z"/><path d="M3 9c2 0 3 1 5 1s3-1 5-1 3 1 5 1 3-1 3-1"/><line x1="4" y1="19" x2="20" y2="19"/><line x1="4" y1="22" x2="20" y2="22"/></svg>',
+                desc: 'Processo mecânico extremamente brando.',
+                engineering: 'Desenvolvido para tecidos de alta sensibilidade estrutural (como viscose fina, modal e microfibras sintéticas). Minimiza a tração mecânica sobre os fios.',
+                tempLimit: 'Até 30°C',
+                actionLimit: 'Agitação mínima / Sem centrifugação forte',
+                dos: 'Lave poucas peças juntas para reduzir o atrito interno.',
+                donts: 'Proibido esfregar vigorosamente ou torcer o tecido.'
+            },
+            {
+                id: 'w_hand',
+                group: 'wash',
+                name: 'Lavar Apenas à Mão',
+                category: 'Lavagem com Água',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18l-2 13H5L3 6z"/><path d="M3 9c2 0 3 1 5 1s3-1 5-1 3 1 5 1 3-1 3-1"/><path d="M12 11c0 2-1 3-2 3s-2-1-2-3"/></svg>',
+                desc: 'Somente lavagem manual suave a uma temperatura máxima de 40°C.',
+                engineering: 'Indicado para rendas, seda natural, lingerie e bordados. O atrito mecânico do tambor da máquina rasgaria os filamentos delicados destas peças.',
+                tempLimit: 'Máximo 40°C',
+                actionLimit: 'Apenas manuseio manual leve',
+                dos: 'Dissolva o sabão neutro totalmente na água antes de colocar a roupa.',
+                donts: 'Não torça a peça como um parafuso. Esprema suavemente.'
+            },
+            {
+                id: 'w_no',
+                group: 'wash',
+                name: 'Não Lavar com Água',
+                category: 'Lavagem com Água',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18l-2 13H5L3 6z"/><line x1="3" y1="3" x2="21" y2="21"/></svg>',
+                desc: 'Proibido submeter a peça à lavagem doméstica com água.',
+                engineering: 'A água causa inchaço irreversível das fibras, desestruturação de entretelas coladas (em blazers e paletós) ou manchamento de corantes hidrossolúveis.',
+                tempLimit: 'Não se aplica',
+                actionLimit: 'Sem contato com água',
+                dos: 'Encaminhe obrigatoriamente a uma lavanderia profissional.',
+                donts: 'Nunca tente remover manchas locais com água ou panos úmidos.'
+            },
+
+            // 2. ALVEJAMENTO
+            {
+                id: 'b_any',
+                group: 'bleach',
+                name: 'Alvejante Permitido',
+                category: 'Alvejamento',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2L12 3z"/></svg>',
+                desc: 'Permitido o uso de alvejante à base de cloro ou oxigênio.',
+                engineering: 'A fibra tolera agentes de oxidação sem sofrer quebra de polímeros celulósicos. Comum em algodão 100% branco sem acabamentos especiais.',
+                tempLimit: 'Ambiente',
+                actionLimit: 'Oxidação permitida',
+                dos: 'Dilua o alvejante antes do contato direto com a peça.',
+                donts: 'Evite o uso frequente de cloro pois amarela e desgasta o algodão com o tempo.'
+            },
+            {
+                id: 'b_oxygen',
+                group: 'bleach',
+                name: 'Alvejante Sem Cloro (Oxigênio)',
+                category: 'Alvejamento',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2L12 3z"/><line x1="10" y1="12" x2="14" y2="18"/></svg>',
+                desc: 'Permitido uso de alvejantes apenas à base de oxigênio ativo.',
+                engineering: 'O cloro (hipoclorito de sódio) destrói as moléculas de corante sintético e degrada tecidos com elastano ou poliéster. O oxigênio ativo limpa sem oxidar os pigmentos.',
+                tempLimit: 'Ambiente',
+                actionLimit: 'Apenas oxigênio potente',
+                dos: 'Use para remover manchas em tecidos coloridos.',
+                donts: 'NUNCA utilize água sanitária ou produtos com cloro.'
+            },
+            {
+                id: 'b_no',
+                group: 'bleach',
+                name: 'Não Alvejar',
+                category: 'Alvejamento',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2L12 3z"/><line x1="3" y1="3" x2="21" y2="21"/></svg>',
+                desc: 'Não tolera nenhum tipo de alvejante químico.',
+                engineering: 'Os agentes oxidantes descolorirão permanentemente o tecido e atacarão quimicamente a estrutura de poliéster, elastano, lã ou seda.',
+                tempLimit: 'Não se aplica',
+                actionLimit: 'Proibida oxidação',
+                dos: 'Lave apenas com sabão líquido neutro.',
+                donts: 'Jamais aplique tira-manchas pesados ou cloro.'
+            },
+
+            // 3. SECAGEM
+            {
+                id: 'd_tumble_low',
+                group: 'dry',
+                name: 'Secar em Tambor (Calor Baixo)',
+                category: 'Secagem',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>',
+                desc: 'Secagem em secadora rotativa no ciclo delicado (máx. 60°C).',
+                engineering: 'O ponto único indica que a fibra encolherá ou derreterá se submetida à alta temperatura. Evita a perda excessiva de umidade estrutural do fio.',
+                tempLimit: 'Máximo 60°C',
+                actionLimit: 'Tambor com rotação suave',
+                dos: 'Retire a peça da secadora logo após o encerramento do ciclo.',
+                donts: 'Não selecione a opção de secagem super quente.'
+            },
+            {
+                id: 'd_no_tumble',
+                group: 'dry',
+                name: 'Não Secar na Secadora',
+                category: 'Secagem',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="6"/><line x1="3" y1="3" x2="21" y2="21"/></svg>',
+                desc: 'Proibido secar em secadoras elétricas rotativas.',
+                engineering: 'A combinação de ar quente com a fricção contínua do tambor causa encolhimento térmico acentuado (principalmente em algodão e elastano) e destrói o elástico.',
+                tempLimit: 'Não se aplica',
+                actionLimit: 'Sem rotação aquecida',
+                dos: 'Seque a peça naturalmente no varal à sombra.',
+                donts: 'Jamais coloque a peça na secadora elétrica.'
+            },
+            {
+                id: 'd_flat',
+                group: 'dry',
+                name: 'Secar na Horizontal (Plano)',
+                category: 'Secagem',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="6" y1="12" x2="18" y2="12"/></svg>',
+                desc: 'Secar a peça esticada em superfície plana na horizontal.',
+                engineering: 'Essencial para tricôs, lãs e peças pesadas de malha. A água retida no tecido molhado gera peso; pendurar no varal fará a gravidade deformar permanentemente a barra e os ombros.',
+                tempLimit: 'Temperatura ambiente',
+                actionLimit: 'Secagem estática horizontal',
+                dos: 'Estenda uma toalha seca e coloque o tricô sobre ela.',
+                donts: 'NUNCA pendure tricôs e malhas pesadas em pregadores de varal.'
+            },
+            {
+                id: 'd_shade',
+                group: 'dry',
+                name: 'Secar à Sombra',
+                category: 'Secagem',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="4" y1="8" x2="8" y2="4"/></svg>',
+                desc: 'Secar sem exposição direta ao sol.',
+                engineering: 'A radiação ultravioleta (UV) quebra as pontes de hidrogênio e oxida os corantes têxteis, causando o amarelamento de tecidos brancos e o desbotamento rápido de tecidos escuros.',
+                tempLimit: 'Sem sol direto',
+                actionLimit: 'Ambiente ventilado',
+                dos: 'Seque em varais cobertos e com boa circulação de ar.',
+                donts: 'Evite expor tecidos pretos, azuis e coloridos ao sol do meio-dia.'
+            },
+
+            // 4. PASSAGEM A FERRO
+            {
+                id: 'i_low',
+                group: 'iron',
+                name: 'Ferro Baixo (Máx. 110°C)',
+                category: 'Passagem a Ferro',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18h16a2 2 0 0 0 2-2c0-4-3-7-7-7H8L4 18z"/><circle cx="10" cy="15" r="1.5" fill="currentColor"/></svg>',
+                desc: 'Passar a ferro na temperatura baixa (até 110°C) sem vapor.',
+                engineering: 'Para fibras termo-sensíveis como Nylon (Poliamida), Acrílico e Acetato. O uso de vapor pode causar alteração irreversível de brilho ou fusão dos polímeros.',
+                tempLimit: 'Até 110°C',
+                actionLimit: 'Sem vapor quente direto',
+                dos: 'Utilize um pano de algodão fino entre o ferro e a roupa delicada.',
+                donts: 'Não pressione o ferro quente diretamente sobre o tecido sintético.'
+            },
+            {
+                id: 'i_medium',
+                group: 'iron',
+                name: 'Ferro Médio (Máx. 150°C)',
+                category: 'Passagem a Ferro',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18h16a2 2 0 0 0 2-2c0-4-3-7-7-7H8L4 18z"/><circle cx="9" cy="15" r="1.5" fill="currentColor"/><circle cx="13" cy="15" r="1.5" fill="currentColor"/></svg>',
+                desc: 'Passar a ferro com temperatura média até 150°C.',
+                engineering: 'Ideal para tecidos mistos (Algodão + Poliéster), Lã pura e Viscose. O calor médio desamassa as rugas sem queimar o Poliéster misturado.',
+                tempLimit: 'Até 150°C',
+                actionLimit: 'Vapor moderado permitido',
+                dos: 'Passe as peças levemente úmidas para desamassar mais fácil.',
+                donts: 'Evite deixar o ferro parado no mesmo ponto.'
+            },
+            {
+                id: 'i_high',
+                group: 'iron',
+                name: 'Ferro Quente (Máx. 200°C)',
+                category: 'Passagem a Ferro',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18h16a2 2 0 0 0 2-2c0-4-3-7-7-7H8L4 18z"/><circle cx="8" cy="15" r="1.5" fill="currentColor"/><circle cx="11.5" cy="15" r="1.5" fill="currentColor"/><circle cx="15" cy="15" r="1.5" fill="currentColor"/></svg>',
+                desc: 'Passar a ferro na alta temperatura (até 200°C) com vapor.',
+                engineering: 'Para fibras 100% naturais rígidas (Linho puro e Algodão pesado). A alta temperatura associada ao vapor reorganiza as ligações de hidrogênio da celulose.',
+                tempLimit: 'Até 200°C',
+                actionLimit: 'Vapor forte liberado',
+                dos: 'Use bastante vapor para desamassar linho com facilidade.',
+                donts: 'Não use essa temperatura em tecidos com elastano.'
+            },
+            {
+                id: 'i_no',
+                group: 'iron',
+                name: 'Não Passar a Ferro',
+                category: 'Passagem a Ferro',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18h16a2 2 0 0 0 2-2c0-4-3-7-7-7H8L4 18z"/><line x1="3" y1="3" x2="21" y2="21"/></svg>',
+                desc: 'Proibido passar a ferro.',
+                engineering: 'O calor da base metálica fundirá instantaneamente superfícies plastificadas, estampas de emborrachadas, náilon fino ou tecidos plissados.',
+                tempLimit: 'Não se aplica',
+                actionLimit: 'Sem contato com ferro',
+                dos: 'Pendure a peça no banheiro enquanto toma banho morno para o vapor desamassar naturalmente.',
+                donts: 'Jamais encoste o ferro quente na peça.'
+            },
+
+            // 5. LIMPEZA PROFISSIONAL
+            {
+                id: 'p_dryclean',
+                group: 'professional',
+                name: 'Limpeza a Seco (P)',
+                category: 'Limpeza Profissional',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><text x="12" y="15" font-size="9" text-anchor="middle" font-weight="extrabold" fill="currentColor" stroke="none">P</text></svg>',
+                desc: 'Limpeza profissional a seco com solvente Percloroetileno.',
+                engineering: 'Remove graxas e óleos de tecidos nobres sem aplicar água. O símbolo P indica o solvente hidrocarboneto específico usado na máquina industrial.',
+                tempLimit: 'Controlado em lavanderia',
+                actionLimit: 'Solvente industrial',
+                dos: 'Leve a peça a lavanderias especializadas de confiança.',
+                donts: 'Não tente lavar em casa usando produtos à base de petróleo.'
+            },
+            {
+                id: 'p_no_dryclean',
+                group: 'professional',
+                name: 'Não Limpar a Seco',
+                category: 'Limpeza Profissional',
+                icon: '<svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="3" y1="3" x2="21" y2="21"/></svg>',
+                desc: 'Proibida a limpeza a seco com solventes industriais.',
+                engineering: 'Os solventes químicos dissolveriam os revestimentos impermeáveis do tecido ou derreteriam estruturas sintéticas internas da roupa.',
+                tempLimit: 'Não se aplica',
+                actionLimit: 'Sem solventes',
+                dos: 'Opte pela lavagem doméstica com água ou lavagem profissional a úmido.',
+                donts: 'Não envie para processos industriais a seco.'
+            }
+        ];
+
+        // GLOBAL APP STATE
+        let selectedSymbols = new Set();
+        let activeModalSymbolId = null;
+
+        // INITIALIZATION
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderSymbolGroups();
+            calculateDetergent();
+            updateFloatingBar();
+        });
+
+        // TAB SWITCHING
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-emerald-600', 'text-white', 'shadow');
+                btn.classList.add('text-slate-300');
+            });
+
+            document.getElementById(tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-emerald-600', 'text-white', 'shadow');
+                activeBtn.classList.remove('text-slate-300');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // RENDER SYMBOL CARDS
+        function renderSymbolGroups() {
+            const groups = ['wash', 'bleach', 'dry', 'iron', 'professional'];
+            groups.forEach(group => {
+                const container = document.getElementById(`group-${group}`);
+                if (!container) return;
+                const items = SYMBOLS_DATA.filter(s => s.group === group);
+
+                container.innerHTML = items.map(item => `
+                    <div id="card-${item.id}" onclick="openSymbolModal('${item.id}')" 
+                        class="symbol-card cursor-pointer p-3 rounded-2xl border border-slate-200 bg-white hover:border-emerald-500 text-center flex flex-col justify-between h-32 select-none shadow-sm relative group">
+                        
+                        <div class="text-slate-800 my-auto flex justify-center items-center">
+                            ${item.icon}
+                        </div>
+                        <div>
+                            <span class="text-[11px] font-extrabold text-slate-800 leading-tight block line-clamp-2">${item.name}</span>
+                            <span class="text-[9px] font-bold text-emerald-600 mt-1 inline-flex items-center">
+                                Detalhes <i data-lucide="chevron-right" class="w-3 h-3 ml-0.5"></i>
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+            });
+            lucide.createIcons();
+        }
+
+        // OPEN INSTANT FULL SYMBOL MODAL
+        function openSymbolModal(id) {
+            const symbol = SYMBOLS_DATA.find(s => s.id === id);
+            if (!symbol) return;
+
+            activeModalSymbolId = id;
+
+            document.getElementById('modal-icon-container').innerHTML = symbol.icon;
+            document.getElementById('modal-category-badge').innerText = symbol.category;
+            document.getElementById('modal-title').innerText = symbol.name;
+            document.getElementById('modal-desc').innerText = symbol.desc;
+            document.getElementById('modal-engineering').innerText = symbol.engineering;
+            document.getElementById('modal-limit-temp').innerText = symbol.tempLimit;
+            document.getElementById('modal-limit-action').innerText = symbol.actionLimit;
+            document.getElementById('modal-dos').innerText = symbol.dos;
+            document.getElementById('modal-donts').innerText = symbol.donts;
+
+            // Update modal toggle button state
+            const toggleBtn = document.getElementById('modal-toggle-btn');
+            if (selectedSymbols.has(id)) {
+                toggleBtn.className = "px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition flex items-center space-x-1.5 shadow";
+                toggleBtn.innerHTML = `<i data-lucide="minus" class="w-4 h-4"></i><span>Remover da Minha Etiqueta</span>`;
+            } else {
+                toggleBtn.className = "px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center space-x-1.5 shadow";
+                toggleBtn.innerHTML = `<i data-lucide="plus" class="w-4 h-4"></i><span>Adicionar à Minha Etiqueta</span>`;
+            }
+
+            document.getElementById('symbol-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeSymbolModal() {
+            document.getElementById('symbol-modal').classList.add('hidden');
+            activeModalSymbolId = null;
+        }
+
+        function toggleSymbolFromModal() {
+            if (!activeModalSymbolId) return;
+            const id = activeModalSymbolId;
+            const symbol = SYMBOLS_DATA.find(s => s.id === id);
+
+            // Keep max 1 selection per category for clear reporting
+            const sameGroup = SYMBOLS_DATA.filter(s => s.group === symbol.group);
+            
+            if (selectedSymbols.has(id)) {
+                selectedSymbols.delete(id);
+                document.getElementById(`card-${id}`)?.classList.remove('selected');
+            } else {
+                sameGroup.forEach(s => {
+                    if (selectedSymbols.has(s.id)) {
+                        selectedSymbols.delete(s.id);
+                        document.getElementById(`card-${s.id}`)?.classList.remove('selected');
+                    }
+                });
+                selectedSymbols.add(id);
+                document.getElementById(`card-${id}`)?.classList.add('selected');
+            }
+
+            updateFloatingBar();
+            closeSymbolModal();
+        }
+
+        function resetTagBuilder() {
+            selectedSymbols.clear();
+            document.querySelectorAll('.symbol-card').forEach(c => c.classList.remove('selected'));
+            updateFloatingBar();
+        }
+
+        function updateFloatingBar() {
+            const count = selectedSymbols.size;
+            document.getElementById('floating-count').innerText = count;
+            const subtitle = document.getElementById('floating-subtitle');
+
+            if (count === 0) {
+                subtitle.innerText = 'Toque nos símbolos para montar sua etiqueta';
+            } else {
+                subtitle.innerText = `${count} símbolo(s) pronto(s) para diagnóstico`;
+            }
+        }
+
+        // OPEN CONSOLIDATED REPORT MODAL
+        function openReportModal() {
+            const container = document.getElementById('report-modal-body');
+
+            if (selectedSymbols.size === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 space-y-3">
+                        <i data-lucide="tag" class="w-10 h-10 text-slate-300 mx-auto"></i>
+                        <p class="text-slate-500 font-medium text-xs">Nenhum símbolo foi adicionado à etiqueta ainda.</p>
+                        <p class="text-slate-400 text-[11px]">Volte à aba de símbolos e toque nos ícones impressos na sua peça!</p>
+                    </div>
+                `;
+            } else {
+                const list = Array.from(selectedSymbols).map(id => SYMBOLS_DATA.find(s => s.id === id)).filter(Boolean);
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <p class="text-slate-600 text-xs">Resumo das diretrizes técnicas para os símbolos selecionados:</p>
+                        <div class="grid grid-cols-1 gap-3">
+                            ${list.map(item => `
+                                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-black text-emerald-700 uppercase tracking-wider">${item.category}</span>
+                                        <span class="text-[10px] font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-md">${item.tempLimit}</span>
+                                    </div>
+                                    <h4 class="font-extrabold text-slate-900 text-sm">${item.name}</h4>
+                                    <p class="text-xs text-slate-600">${item.desc}</p>
+                                    <div class="pt-2 border-t border-slate-200 text-[11px] text-slate-500 space-y-1">
+                                        <p>💡 <strong>Engenharia:</strong> ${item.engineering}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('report-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeReportModal() {
+            document.getElementById('report-modal').classList.add('hidden');
+        }
+
+        // DETERGENT DOSAGE CALCULATOR
+        function calculateDetergent() {
+            const load = document.getElementById('calc-load').value;
+            const dirt = document.getElementById('calc-dirt').value;
+            const resultEl = document.getElementById('calc-result');
+
+            let ml = 45;
+            if (load === 'medium') ml = 60;
+            if (load === 'heavy') ml = 90;
+
+            if (dirt === 'high') ml += 20;
+            if (dirt === 'low') ml -= 10;
+
+            resultEl.innerHTML = `
+                <div>
+                    <span class="block text-xs text-slate-300 font-semibold">Dosagem Recomendada de Detergente Líquido:</span>
+                    <span class="text-xl font-black text-emerald-300">${ml} ml de Detergente</span>
+                </div>
+                <div class="text-xs text-slate-300 bg-emerald-900/80 border border-emerald-700/60 px-3 py-1.5 rounded-xl">
+                    💡 Equivalente a aproximadamente <strong>${(ml / 30).toFixed(1)} tampas</strong> de dosador padrão.
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
